@@ -25,19 +25,20 @@ class Reader:
         """Read the file and keep its contents"""
         self.file_contents = text_file.read()
 
-    def lines(self, rstrip=True):
+    def lines(self, rstrip=True, skip_empty=True):
         """Yield lines from the contents"""
         for line in self.file_contents.splitlines(keepends=True):
             if rstrip:
-                yield line.rstrip()
-            else:
+                line = line.rstrip()
+            #
+            if line or not skip_empty:
                 yield line
             #
         #
 
-    def splitted_lines(self, by_=None, rstrip=True):
+    def splitted_lines(self, by_=None, rstrip=True, skip_empty=True):
         """Yield lines splitted"""
-        for line in self.lines(rstrip=rstrip):
+        for line in self.lines(rstrip=rstrip, skip_empty=skip_empty):
             yield line.split(by_)
         #
 
