@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-
 Advent of code 2021, day x
 blackstream-x’ solution
 """
