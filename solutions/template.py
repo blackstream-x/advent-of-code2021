@@ -7,33 +7,35 @@ blackstream-x’ solution
 """
 
 
+import logging
+
 import helpers
 
 
-READER = helpers.Reader()
-
-
 @helpers.timer
-def part1():
+def part1(reader):
+    """Part 1"""
     result = None
-    for line in READER.lines():
+    for line in reader.lines():
         ...
     #
     return result
 
 
 @helpers.timer
-def part2():
+def part2(reader):
+    """Part 2"""
     result = None
-    for line in READER.lines():
+    for line in reader.lines():
         ...
     #
     return result
 
 
 if __name__ == "__main__":
-    print(part1())
-    print(part2())
+    READER = helpers.initialize_puzzle()
+    print(part1(READER))
+    print(part2(READER))
 
 
 # vim: fileencoding=utf-8 sw=4 ts=4 sts=4 expandtab autoindent syntax=python:

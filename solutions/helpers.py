@@ -6,6 +6,9 @@ for blackstream-x’ solutions
 """
 
 
+import argparse
+import collections
+import logging
 import sys
 import time
 
@@ -43,9 +46,37 @@ class Reader:
         #
 
 
+Position = collections.namedtuple('Position', ('x', 'y'))
+
+
 #
 # Functions
 #
+
+
+def initialize_puzzle():
+    """Initialize a puzze: initialize logging,
+    and return a Reader object
+    """
+    main_parser = argparse.ArgumentParser(
+        prog=sys.argv[0],
+        description="Advent of Code puzzle solver",
+    )
+    main_parser.set_defaults(loglevel=logging.INFO)
+    main_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_const",
+        const=logging.DEBUG,
+        dest="loglevel",
+        help="output all messages including debug level",
+    )
+    arguments = main_parser.parse_args()
+    logging.basicConfig(
+        level=arguments.loglevel,
+        format="%(levelname)-8s | %(message)s",
+    )
+    return Reader()
 
 
 def timer(func):
@@ -57,7 +88,11 @@ def timer(func):
     def wrapper(*args, **kwargs):
         start = time.time() * 1000
         func_output = func(*args, **kwargs)
-        print(f'Executed in {time.time() * 1000 - start:.3f} msec:')
+        logging.debug(
+            "Executed %r in %.3f msec",
+            func.__doc__,
+            time.time() * 1000 - start
+        )
         return func_output
 
     return wrapper
