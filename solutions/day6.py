@@ -35,14 +35,10 @@ def population_after(days, fishes):
     for day in range(1, days + 1):
         new_fish = spawn_events[day]
         logging.debug("Day #%s: %s spawned", day, new_fish)
-        new_spawns = spawn_days(NEW_FISH, days + 1 - day)
+        new_spawns = spawn_days(NEW_FISH, days - day)
         for new_day in new_spawns:
             future_day = day + new_day
-            try:
-                spawn_events[future_day] += new_fish
-            except IndexError:
-                pass
-            #
+            spawn_events[future_day] += new_fish
         #
         population += new_fish
     #
