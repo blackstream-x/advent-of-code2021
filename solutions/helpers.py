@@ -24,9 +24,15 @@ class Reader:
     and provide generator methods yielding lines or line parts
     """
 
-    def __init__(self, text_file=sys.stdin):
+    def __init__(self, file_name=None):
         """Read the file and keep its contents"""
-        self.file_contents = text_file.read()
+        if file_name:
+            with open(file_name, mode="rt", encoding="utf-8") as input_file:
+                self.file_contents = input_file.read()
+            #
+        else:
+            self.file_contents = sys.stdin.read()
+        #
 
     def lines(self, rstrip=True, skip_empty=True):
         """Yield lines from the contents"""
@@ -71,12 +77,17 @@ def initialize_puzzle():
         dest="loglevel",
         help="output all messages including debug level",
     )
+    main_parser.add_argument(
+        "input_file_name",
+        nargs="?",
+        help="read data from a file (default: read from stdin)",
+    )
     arguments = main_parser.parse_args()
     logging.basicConfig(
         level=arguments.loglevel,
         format="%(levelname)-8s | %(message)s",
     )
-    return Reader()
+    return Reader(arguments.input_file_name)
 
 
 def timer(func):
