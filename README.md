@@ -17,15 +17,16 @@ _Tests are enabled for day 3 and after_
 ```
 
 `day` is a day number, eg. 7 or 11, but the options can be omitted as well.
+In that case, solutions for all days are tested.
 
 ## Run today’s example
 
 ```
-solutions/day${day}.py -v inputs/$7day}.example
+solutions/day${day}.py -v inputs/${day}.example
 ```
 
 ## Go for today’s solution
 
 ```
-solutions/day${day}.py -v inputs/$7day}.txt
+solutions/day${day}.py -v inputs/${day}.txt
 ```
