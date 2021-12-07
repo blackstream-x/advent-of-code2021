@@ -18,6 +18,9 @@ import time
 #
 
 
+Position = collections.namedtuple('Position', ('x', 'y'))
+
+
 class Reader:
 
     """Read an open text file (by preference: stdin)
@@ -52,7 +55,18 @@ class Reader:
         #
 
 
-Position = collections.namedtuple('Position', ('x', 'y'))
+class TestMixin:
+
+    """Mixin for unit tests preventing code duplication"""
+
+    def do_equality_test(self, index):
+        """Test for equality"""
+        if self.results[index] is None:
+            self.skipTest("No expected result provided")
+        #
+        self.assertEqual(
+            self.results[index], self.tested_functions[index](self.reader)
+        )
 
 
 #

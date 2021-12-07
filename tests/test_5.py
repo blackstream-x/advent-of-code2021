@@ -50,7 +50,7 @@ class TestPuzzle(unittest.TestCase):
     puzzle_reader = helpers.Reader(file_name=f"inputs/{DAY}.txt")
 
     def test_part_1_puzzle(self):
-        """Test part 2 with puzzle data"""
+        """Test part 1 with puzzle data"""
         if PART_1_PUZZLE_RESULT is None:
             self.skipTest("Expected result not specified")
         #

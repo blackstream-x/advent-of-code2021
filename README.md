@@ -1,6 +1,6 @@
 # advent-of-code2021
 
-my Advent of code 2021 solutions
+My Advent of Code 2021 solutions
 
 ## Add solution, test and input files for today
 
@@ -13,11 +13,12 @@ my Advent of code 2021 solutions
 _Tests are enabled for day 3 and after_
 
 ```
-./run-tests.sh -vk _${day}
+./run-tests.sh -fvk _${day}
 ```
 
-`day` is a day number, eg. 7 or 11, but the options can be omitted as well.
-In that case, solutions for all days are tested.
+`day` is a day number, eg. 7 or 11, but the options –
+especially `-k _${day}` – can be omitted as well.
+In that case, the solutions for all days will be tested.
 
 ## Run today’s example
 
