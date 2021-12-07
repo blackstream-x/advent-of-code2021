@@ -17,9 +17,7 @@ NEW_FISH = 8
 
 
 def spawn_days(initial_count, days):
-    """Return a list of days when a fish with initial_count spawns,
-    zero-based
-    """
+    """Return a list of days when a fish with initial_count spawns"""
     return list(range(initial_count + 1, days + 1, SPAWN_PERIOD))
 
 
