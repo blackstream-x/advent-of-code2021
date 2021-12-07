@@ -17,8 +17,8 @@ NEW_FISH = 8
 
 
 def spawn_days(initial_count, days):
-    """Return a list of days when a fish with initial_count spawns"""
-    return list(range(initial_count + 1, days + 1, SPAWN_PERIOD))
+    """Days when a fish with initial_count spawns"""
+    return range(initial_count + 1, days + 1, SPAWN_PERIOD)
 
 
 def population_after(days, fishes):
@@ -33,12 +33,10 @@ def population_after(days, fishes):
     for day in range(1, days + 1):
         new_fish = spawn_events[day]
         logging.debug("Day #%s: %s spawned", day, new_fish)
-        new_spawns = spawn_days(NEW_FISH, days - day)
-        for new_day in new_spawns:
-            future_day = day + new_day
-            spawn_events[future_day] += new_fish
-        #
         population += new_fish
+        for days_offset in spawn_days(NEW_FISH, days - day):
+            spawn_events[day + days_offset] += new_fish
+        #
     #
     return population
 
@@ -46,15 +44,9 @@ def population_after(days, fishes):
 @helpers.timer
 def part1(reader):
     """Part 1"""
-    test_days = 18
     days = 80
     for line in reader.lines():
         fishes = [int(item) for item in line.split(",")]
-        logging.debug(
-            "Population after %s days: %s",
-            test_days,
-            population_after(test_days, fishes),
-        )
         return population_after(days, fishes)
     #
 
@@ -62,15 +54,9 @@ def part1(reader):
 @helpers.timer
 def part2(reader):
     """Part 2"""
-    test_days = 18
     days = 256
     for line in reader.lines():
         fishes = [int(item) for item in line.split(",")]
-        logging.debug(
-            "Population after %s days: %s",
-            test_days,
-            population_after(test_days, fishes),
-        )
         return population_after(days, fishes)
     #
 
