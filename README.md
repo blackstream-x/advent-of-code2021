@@ -10,7 +10,7 @@ my Advent of code 2021 solutions
 
 ## Run unittests:
 
-_Tests are enabled for day 6 and after_
+_Tests are enabled for day 4 and after_
 
 ```
 ./run-tests.sh -vk _${day}
