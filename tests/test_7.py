@@ -45,7 +45,7 @@ class TestExample(unittest.TestCase):
 
 class TestPuzzle(unittest.TestCase):
 
-    """Test solutions using the example"""
+    """Test solutions using the puzzle"""
 
     puzzle_reader = helpers.Reader(file_name=f"inputs/{DAY}.txt")
 
