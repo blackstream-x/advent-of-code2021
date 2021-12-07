@@ -99,7 +99,7 @@ def timer(func):
     def wrapper(*args, **kwargs):
         start = time.time() * 1000
         func_output = func(*args, **kwargs)
-        logging.debug(
+        logging.info(
             "Executed %r in %.3f msec",
             func.__doc__,
             time.time() * 1000 - start
