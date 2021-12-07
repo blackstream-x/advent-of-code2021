@@ -6,6 +6,8 @@ else
     day=$(echo $1 | bc)
 fi
 
+echo "Adding files for day ${day}"
+
 todays_solution=solutions/day${day}.py
 
 if [ -f ${todays_solution} ] ; then
