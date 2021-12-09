@@ -19,31 +19,37 @@ class LowestPoint(Exception):
     ...
 
 
+class OutOfMap(Exception):
+
+    """Exception raised if trying to access a point outside the map"""
+
+    ...
+
+
 class HeightMap:
 
     """Height map of the submarine floor"""
 
     def __init__(self, lines_sequence):
         """Store lines"""
-        self.lines = tuple(lines_sequence)
+        self.lines = tuple(
+            tuple(int(character) for character in line)
+            for line in lines_sequence
+        )
         self.max_y = len(self.lines) - 1
         self.basins = {}
         self.basins_lookup = {}
 
     def get_height(self, x, y):
         """Get the height at the indicated position"""
-        return int(self.lines[y][x])
-
-    def position_in_map(self, x, y):
-        """check if the position is inside the map."""
         if y > self.max_y:
-            return False
+            raise OutOfMap
         #
         max_x = len(self.lines[y]) - 1
         if x < 0 or y < 0 or x > max_x:
-            return False
+            raise OutOfMap
         #
-        return True
+        return self.lines[y][x]
 
     def smallest_neighbor(self, x, y):
         """Return the smallest neighbor’s coordinates"""
@@ -51,10 +57,11 @@ class HeightMap:
         lowest_height = own_height
         lowest_coords = (x, y)
         for (n_x, n_y) in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
-            if not self.position_in_map(n_x, n_y):
+            try:
+                neighbor_height = self.get_height(n_x, n_y)
+            except OutOfMap:
                 continue
             #
-            neighbor_height = self.get_height(n_x, n_y)
             if neighbor_height <= lowest_height:
                 lowest_coords = (n_x, n_y)
                 lowest_height = neighbor_height
@@ -68,7 +75,7 @@ class HeightMap:
     def find_low_point_coordinates(self):
         """Yield (x,y) of all low points"""
         for y_index, row in enumerate(self.lines):
-            for x_index, point in enumerate(row):
+            for x_index in range(len(row)):
                 try:
                     self.smallest_neighbor(x_index, y_index)
                 except LowestPoint:
@@ -117,11 +124,7 @@ class HeightMap:
                 y = y_index
                 visited_positions = [(x, y)]
                 while True:
-                    try:
-                        (x, y) = self.smallest_neighbor(x, y)
-                    except LowestPoint:
-                        # Tja...
-                        ...
+                    (x, y) = self.smallest_neighbor(x, y)
                     try:
                         basin_id = self.basins_lookup[(x, y)]
                     except KeyError:
