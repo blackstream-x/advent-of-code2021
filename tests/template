@@ -23,34 +23,34 @@ PUZZLE_FILE = f"inputs/{DAY}.txt"
 
 class TestExample(unittest.TestCase, helpers.TestMixin):
 
-    """Test solutions using the example"""
+    """Day $DAY: Test solutions using the example"""
 
     reader = helpers.Reader(file_name=EXAMPLE_FILE)
     results = EXAMPLE_RESULTS
     tested_functions = TESTED_FUNCTIONS
 
     def test_1(self):
-        """Test part 1 with example data"""
+        """Day $DAY: Test part 1 with example data"""
         self.do_equality_test(0)
 
     def test_2(self):
-        """Test part 2 with example data"""
+        """Day $DAY: Test part 2 with example data"""
         self.do_equality_test(1)
 
 
 class TestPuzzle(unittest.TestCase, helpers.TestMixin):
 
-    """Test solutions using the puzzle"""
+    """Day $DAY: Test solutions using the puzzle"""
 
     reader = helpers.Reader(file_name=PUZZLE_FILE)
     results = PUZZLE_RESULTS
     tested_functions = TESTED_FUNCTIONS
 
     def test_1(self):
-        """Test part 1 with puzzle data"""
+        """Day $DAY: Test part 1 with puzzle data"""
         self.do_equality_test(0)
 
     def test_2(self):
-        """Test part 2 with puzzle data"""
+        """Day $DAY: Test part 2 with puzzle data"""
         self.do_equality_test(1)
 
