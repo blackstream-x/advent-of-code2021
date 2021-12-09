@@ -125,18 +125,16 @@ class WireMapper:
     )
 
     def __init__(self):
-        """Initalize lookup collections"""
-        self.digits = {}
-        self.target_wires = []
-        for (index, wires) in enumerate(self.regular_display):
-            self.digits[wires] = index
-            split_wire = frozenset(wires)
-            self.target_wires.append(split_wire)
-        #
+        """Initalize lookup dict"""
+        self.digits = {
+            wires: index for (index, wires) in enumerate(self.regular_display)
+        }
         self.translation_table = {}
 
     def learn(self, wiring_mess):
-        """Learn how mixed up wires have to be reconnected"""
+        """Learn how mixed up wires have to be reconnected.
+        Set the internal translation table.
+        """
         logging.debug("--- Learning... ---")
         wiring = Reducer()
         for mixed_up in wiring_mess:
