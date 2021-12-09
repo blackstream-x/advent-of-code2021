@@ -7,31 +7,104 @@ blackstream-x’ solution
 """
 
 
+import itertools
 import logging
 
 import helpers
 
 
-def all_combinations(letter_sequences):
-    """Return all possible combinations of the sequences
-    as a list of strings
+class Reducer:
+
+    """Keep a dict of sets.
+    If a set contains only one entry,
+    include it in a "complete_items" view
     """
-    sequences = list(letter_sequences)
-    output = []
-    while sequences:
-        combination = sequences.pop(0)
-        if output:
-            previous_output = output
-        else:
-            previous_output = [""]
+
+    def __init__(self):
+        """Initialize internal dict"""
+        self.__unclear_data = {}
+        self.__complete_data = {}
+
+    def __getitem__(self, key):
+        """Return self.__complete_data[key]"""
+        return self.__complete_data[key]
+
+    def __iter__(self):
+        """Return an iterator over self.__complete_data"""
+        return iter(self.__complete_data)
+
+    def complete_items(self):
+        """Return complete data items"""
+        return self.__complete_data.items()
+
+    def unclear_items(self):
+        """Return data items"""
+        return self.__unclear_data.items()
+
+    def is_complete(self, key):
+        """Return True if the value for key is unique"""
+        return key in self.__complete_data
+
+    def __check_completeness(self, key):
+        """If there is only one value in key's set,
+        move that to the complete_data dict as a scalar value.
+        Remove the value form the other unclear sets as well.
+        """
+        if len(self.__unclear_data[key]) == 1:
+            self.__complete_data[key] = self.__unclear_data[key].pop()
+            del self.__unclear_data[key]
+            for unclear_key in list(self.__unclear_data):
+                try:
+                    self.reduce(unclear_key, self.__complete_data[key])
+                except KeyError:
+                    continue
+                #
+            #
         #
-        output = [
-            f"{stub}{letter}"
-            for letter in combination
-            for stub in previous_output
+
+    def update(self, key, *values):
+        """Update key with values and check for completeness"""
+        if key not in self.__unclear_data:
+            self.__unclear_data[key] = self.__complete_data.pop(key, set())
+        #
+        self.__unclear_data[key].update(values)
+        self.__check_completeness(key)
+
+    def reduce(self, key, value):
+        """Remove value from the key set and check for completeness"""
+        self.__unclear_data[key].remove(value)
+        self.__check_completeness(key)
+
+
+class CharacterReducer(Reducer):
+
+    """Character translation reduction class"""
+
+    def all_matching(self, mixed_up, candidates):
+        """Return a subset of candidates matching
+        all possible translations using the current state
+        """
+        possible_characters = [
+            value for key, value in self.complete_items() if key in mixed_up
+        ] + [
+            "".join(value)
+            for key, value in self.unclear_items() if key in mixed_up
         ]
-    #
-    return output
+        combinations = 0
+        result = set()
+        for possible_match in itertools.product(*possible_characters):
+            compare_value = "".join(
+                letter for letter in sorted(possible_match)
+            )
+            combinations += 1
+            if compare_value in candidates:
+                result.add(compare_value)
+            #
+        #
+        logging.debug(
+            "%s matches from %s tried combinations", len(result), combinations
+        )
+        return result
 
 
 class WireMapper:
@@ -62,101 +135,72 @@ class WireMapper:
         #
         self.translation_table = {}
 
-    def learn(self, mixed_up_wires):
+    def learn(self, wiring_mess):
         """Learn how mixed up wires have to be reconnected"""
         logging.debug("--- Learning... ---")
-        translation_table = {}
-        possible_results = {}
-        possible_translations = {}
-        for wires in mixed_up_wires:
+        wiring = Reducer()
+        for mixed_up in wiring_mess:
             candidates = [
-                target for target in self.regular_display
-                if len(target) == len(wires)
+                candidate for candidate in self.regular_display
+                if len(candidate) == len(mixed_up)
             ]
-            possible_results[wires] = set(candidates)
+            wiring.update(mixed_up, *candidates)
         #
-        found_matches = {}
-        for wires, results in possible_results.items():
-            if len(results) == 1:
-                found_result = results.pop()
-                for wire_id in wires:
-                    possible_translations[wire_id] = set(found_result)
-                #
-                found_matches[wires] = found_result
+        translations = CharacterReducer()
+        for mixed_up, regular in wiring.complete_items():
+            for wire_id in mixed_up:
+                translations.update(wire_id, *list(regular))
             #
         #
-        knowledge_increased = bool(found_matches)
-        while knowledge_increased:
-            logging.debug("--- Starting a new cycle")
-            knowledge_increased = False
-            safe_translations = set()
+        while translations.unclear_items():
+            logging.debug(" - Starting a new round")
             # reduce possible translations
-            for (wire_id, translations) in possible_translations.items():
-                if len(translations) < 2:
-                    continue
-                #
-                # Match against found_matches
-                for wires, results in found_matches.items():
-                    for translated_id in list(translations):
-                        if (wire_id in wires) != (translated_id in results):
-                            translations.remove(translated_id)
+            for (wire_id, tl_candidates) in list(translations.unclear_items()):
+                # Match against completed wiring items
+                for mixed_up, regular in wiring.complete_items():
+                    for candidate_id in list(tl_candidates):
+                        if (wire_id in mixed_up) != (candidate_id in regular):
+                            translations.reduce(wire_id, candidate_id)
                         #
                     #
                 #
-                if len(translations) == 1:
-                    translated_value = list(translations)[0]
-                    translation_table[wire_id] = translated_value
-                    knowledge_increased = True
+                if translations.is_complete(wire_id):
                     logging.debug(
-                        "Found translation: %r => %r!",
-                        wire_id, translated_value
+                        "Found character translation: %r => %r!",
+                        wire_id, translations[wire_id]
                     )
                 #
             #
             # Try to find new matches using the translation table
-            for wires, results in possible_results.items():
+            for mixed_up, candidates in list(wiring.unclear_items()):
                 #
-                # Try all possible translations
-                result_li = []
-                for wire_id in wires:
-                    result_li.append(possible_translations[wire_id])
-                #
-                all_possible_combinations = [
-                    frozenset(combination)
-                    for combination in all_combinations(result_li)
-                    if frozenset(combination) in self.target_wires
-                ]
-                for s_result in set(results):
-                    if frozenset(s_result) not in all_possible_combinations:
-                        results.remove(s_result)
+                if not wiring.is_complete(mixed_up):
+                    # Try all possible translations
+                    remaining = translations.all_matching(
+                        mixed_up, candidates
+                    )
+                    for excluded_candidate in candidates - remaining:
+                        wiring.reduce(mixed_up, excluded_candidate)
                     #
                 #
-                if len(results) == 1:
-                    found_matches[wires] = results.pop()
-                    knowledge_increased = True
-                    safe_translations.add(wires)
+                if wiring.is_complete(mixed_up):
                     logging.debug(
-                        "Found translation: %r => %r!",
-                        wires, found_matches[wires]
+                        "Found wiring reconnection scheme: %r => %r!",
+                        mixed_up, wiring[mixed_up]
                     )
                 #
-
-            #
-            for safe_t in safe_translations:
-                possible_results.pop(safe_t, None)
             #
         #
+        logging.debug("--- Finished learning ---")
         self.translation_table = str.maketrans(
-            {key: value.pop() for key, value in possible_translations.items()}
+            dict(translations.complete_items())
         )
 
     def translate(self, item):
         """Return a digit as str"""
         return str(
             self.digits[
-                "".join(
-                    sorted(frozenset(item.translate(self.translation_table)))
-                )
+                "".join(sorted(item.translate(self.translation_table)))
             ]
         )
 
@@ -171,7 +215,7 @@ def part1(reader):
         if index in (1, 4, 7, 8)
     ]
     for line in reader.lines():
-        rules, display = line.split("|", 1)
+        display = line.split("|", 1)[1]
         result += len(
             [
                 digit for digit in display.split()
