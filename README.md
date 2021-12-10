@@ -8,26 +8,27 @@ My Advent of Code 2021 solutions
 ./new-day.sh
 ```
 
-## Run unittests:
+## Run unittests
 
-_Tests are enabled for day 3 and after_
-
-```
-./run-tests.sh -fvk _${day}
-```
-
-`day` is a day number, eg. 7 or 11, but the options –
-especially `-k _${day}` – can be omitted as well.
-In that case, the solutions for all days will be tested.
-
-## Run today’s example
+_Tests are enabled for day 3 and after. This script simply wraps the command `python3 -m unittest dicover`._
 
 ```
-solutions/day${day}.py -v inputs/${day}.example
+./run-tests.sh [ -v ] [ -e ] [ -k _${day} ]
 ```
 
-## Go for today’s solution
+- `-v` produces verbose output
+- `-f` fails fast
+- `-k _${day}`: if a numerical value is substituted for `${day}`, the tests are run for that day only.
+
+If the `-k …` filter option is omitted, all defined tests are run.
+
+## Run solver
 
 ```
-solutions/day${day}.py -v inputs/${day}.txt
+./run-solver.sh [ -v ] [ -e ] [ day ]
 ```
+
+- `-v` produces verbose output (loglevel `DEBUG`)
+- `-e` runs the solver with the example data
+- `day`: if a numerical value is provided, the solver runs for that day instead of **today**.
+
