@@ -111,12 +111,15 @@ def timer(func):
     """
 
     def wrapper(*args, **kwargs):
-        start = time.time() * 1000
+        start = time.time()
         func_output = func(*args, **kwargs)
+        end = time.time()
+        msec = 1000 * (end - start)
         logging.info(
-            "Executed %r in %.3f msec",
+            "Executed %r in %.3f msec (%.1f µsec)",
             func.__doc__,
-            time.time() * 1000 - start
+            msec,
+            1000 * msec,
         )
         return func_output
 
