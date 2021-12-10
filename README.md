@@ -13,7 +13,7 @@ My Advent of Code 2021 solutions
 _Tests are enabled for day 3 and after. This script simply wraps the command `python3 -m unittest dicover`._
 
 ```
-./run-tests.sh [ -v ] [ -e ] [ -k _${day} ]
+./run-tests.sh [ -v ] [ -f ] [ -k _${day} ]
 ```
 
 - `-v` produces verbose output
