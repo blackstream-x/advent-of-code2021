@@ -66,8 +66,8 @@ class OctopusGrid:
     def __flash(self, position):
         """Increase energy level of all position’s neighbors"""
         pos_x, pos_y = position
-        for x_index in range(pos_x - 1, pos_x +2):
-            for y_index in range(pos_y -1, pos_y + 2):
+        for x_index in range(pos_x - 1, pos_x + 2):
+            for y_index in range(pos_y - 1, pos_y + 2):
                 if x_index != pos_x or y_index != pos_y:
                     self.__increase_energy((x_index, y_index))
                 #
@@ -75,31 +75,33 @@ class OctopusGrid:
         #
 
     def step(self):
-        """Increase energy levels of each octous in the grid"""
+        """Increase energy levels of each octopus in the grid
+        and flash if determined by the individual energy levels
+        """
+        logging.debug("Calculating step...")
+        # Increase energy levels
         for position in self.__grid:
             self.__increase_energy(position)
         #
-        has_flashed = set()
-        while True:
-            new_flashes = False
-            while self.__about_to_flash:
-                position = self.__about_to_flash.pop()
-                if position in has_flashed:
-                    continue
-                #
+        # Flash in iterations op primary and induced flashes
+        have_flashed = set()
+        imminent_flashes = self.__about_to_flash - have_flashed
+        self.__about_to_flash.clear()
+        while imminent_flashes:
+            for position in imminent_flashes:
                 self.__flash(position)
-                has_flashed.add(position)
-                new_flashes = True
+                have_flashed.add(position)
             #
-            if not new_flashes:
-                break
-            #
+            logging.debug("Flash iteration: %s flashes", len(imminent_flashes))
+            imminent_flashes = self.__about_to_flash - have_flashed
+            self.__about_to_flash.clear()
         #
-        for position in has_flashed:
+        # Reset energy levels of each flashed octopus
+        for position in have_flashed:
             self.__grid[position] = 0
         #
-        self.total_flashes += len(has_flashed)
-        return len(has_flashed)
+        self.total_flashes += len(have_flashed)
+        return len(have_flashed)
 
     def total_flashes_after(self, total_steps):
         """Return the number of flashes after total_steps"""
