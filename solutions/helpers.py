@@ -18,7 +18,7 @@ import time
 #
 
 
-Position = collections.namedtuple('Position', ('x', 'y'))
+Position = collections.namedtuple("Position", ("x", "y"))
 
 
 class Reader:

@@ -88,7 +88,8 @@ class CharacterReducer(Reducer):
             value for key, value in self.complete_items() if key in mixed_up
         ] + [
             "".join(value)
-            for key, value in self.unclear_items() if key in mixed_up
+            for key, value in self.unclear_items()
+            if key in mixed_up
         ]
         combinations = 0
         result = set()
@@ -139,7 +140,8 @@ class WireMapper:
         wiring = Reducer()
         for mixed_up in wiring_mess:
             candidates = [
-                candidate for candidate in self.regular_display
+                candidate
+                for candidate in self.regular_display
                 if len(candidate) == len(mixed_up)
             ]
             wiring.update(mixed_up, *candidates)
@@ -165,7 +167,8 @@ class WireMapper:
                 if translations.is_complete(wire_id):
                     logging.debug(
                         "Found character translation: %r => %r!",
-                        wire_id, translations[wire_id]
+                        wire_id,
+                        translations[wire_id],
                     )
                 #
             #
@@ -174,9 +177,7 @@ class WireMapper:
                 #
                 if not wiring.is_complete(mixed_up):
                     # Try all possible translations
-                    remaining = translations.all_matching(
-                        mixed_up, candidates
-                    )
+                    remaining = translations.all_matching(mixed_up, candidates)
                     for excluded_candidate in candidates - remaining:
                         wiring.reduce(mixed_up, excluded_candidate)
                     #
@@ -184,7 +185,8 @@ class WireMapper:
                 if wiring.is_complete(mixed_up):
                     logging.debug(
                         "Found wiring reconnection scheme: %r => %r!",
-                        mixed_up, wiring[mixed_up]
+                        mixed_up,
+                        wiring[mixed_up],
                     )
                 #
             #
@@ -209,14 +211,16 @@ def part1(reader):
     result = 0
     wire_mapper = WireMapper()
     requested_digit_lengths = [
-        len(wires) for wires, index in wire_mapper.digits.items()
+        len(wires)
+        for wires, index in wire_mapper.digits.items()
         if index in (1, 4, 7, 8)
     ]
     for line in reader.lines():
         display = line.split("|", 1)[1]
         result += len(
             [
-                digit for digit in display.split()
+                digit
+                for digit in display.split()
                 if len(digit) in requested_digit_lengths
             ]
         )

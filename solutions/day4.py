@@ -87,7 +87,7 @@ def build_game(reader):
                 current_board = Board()
             #
         else:
-            drawn_numbers = [int(item) for item in line.split(',')]
+            drawn_numbers = [int(item) for item in line.split(",")]
         #
     #
     return drawn_numbers, boards

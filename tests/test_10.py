@@ -53,4 +53,3 @@ class TestPuzzle(unittest.TestCase, helpers.TestMixin):
     def test_2(self):
         """Day 10: Test part 2 with puzzle data"""
         self.do_equality_test(1)
-

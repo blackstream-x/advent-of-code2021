@@ -10,8 +10,8 @@ blackstream-x’ solution
 import helpers
 
 
-ONE = '1'
-ZERO = '0'
+ONE = "1"
+ZERO = "0"
 
 
 def most_and_least_common(report_values):
@@ -56,18 +56,19 @@ def filter_from_report(reader, position):
         if len(report_values) > 1:
             continue
         #
-        return ''.join(report_values.pop())
+        return "".join(report_values.pop())
     #
     raise ValueError(
         f"#{position} not found, remaining values: {report_values!r}!"
     )
 
+
 @helpers.timer
 def part1(reader):
     """Part 1"""
     [gamma, epsilon] = [
-        ''.join(values) for values
-        in most_and_least_common(list(reader.lines()))
+        "".join(values)
+        for values in most_and_least_common(list(reader.lines()))
     ]
     gamma_dec, epsilon_dec = int(gamma, 2), int(epsilon, 2)
     print(f"Gamma: {gamma} => {gamma_dec}")

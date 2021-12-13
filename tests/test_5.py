@@ -28,8 +28,7 @@ class TestExample(unittest.TestCase):
     def test_part_1_example(self):
         """Test part 1 with example data"""
         self.assertEqual(
-            proposed_solution.part1(self.example_reader),
-            PART_1_EXAMPLE_RESULT
+            proposed_solution.part1(self.example_reader), PART_1_EXAMPLE_RESULT
         )
 
     def test_part_2_example(self):
@@ -38,8 +37,7 @@ class TestExample(unittest.TestCase):
             self.skipTest("Expected result not specified")
         #
         self.assertEqual(
-            proposed_solution.part2(self.example_reader),
-            PART_2_EXAMPLE_RESULT
+            proposed_solution.part2(self.example_reader), PART_2_EXAMPLE_RESULT
         )
 
 
@@ -55,8 +53,7 @@ class TestPuzzle(unittest.TestCase):
             self.skipTest("Expected result not specified")
         #
         self.assertEqual(
-            proposed_solution.part1(self.puzzle_reader),
-            PART_1_PUZZLE_RESULT
+            proposed_solution.part1(self.puzzle_reader), PART_1_PUZZLE_RESULT
         )
 
     def test_part_2_puzzle(self):
@@ -65,6 +62,5 @@ class TestPuzzle(unittest.TestCase):
             self.skipTest("Expected result not specified")
         #
         self.assertEqual(
-            proposed_solution.part2(self.puzzle_reader),
-            PART_2_PUZZLE_RESULT
+            proposed_solution.part2(self.puzzle_reader), PART_2_PUZZLE_RESULT
         )

@@ -33,6 +33,7 @@ AUTOCOMPLETION_SCORES = {
     ">": 4,
 }
 
+
 def first_error_char(line):
     """Return the first error character in the line"""
     stack = []
@@ -44,15 +45,13 @@ def first_error_char(line):
                 expected = stack.pop()
             except IndexError:
                 logging.debug(
-                    "Expected any of %r, but found %r instead",
-                    OPENERS, char
+                    "Expected any of %r, but found %r instead", OPENERS, char
                 )
                 return char
             #
             if char != expected:
                 logging.debug(
-                    "Expected %r, but found %r instead",
-                    expected, char
+                    "Expected %r, but found %r instead", expected, char
                 )
                 return char
             #
@@ -72,15 +71,13 @@ def completion_score(line):
                 expected = stack.pop()
             except IndexError as error:
                 logging.debug(
-                    "Expected any of %r, but found %r instead",
-                    OPENERS, char
+                    "Expected any of %r, but found %r instead", OPENERS, char
                 )
                 raise ValueError from error
             #
             if char != expected:
                 logging.debug(
-                    "Expected %r, but found %r instead",
-                    expected, char
+                    "Expected %r, but found %r instead", expected, char
                 )
                 raise ValueError
             #
