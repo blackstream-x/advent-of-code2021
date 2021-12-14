@@ -7,7 +7,7 @@ blackstream-x’ solution
 """
 
 
-import logging
+# import logging
 
 import helpers
 
@@ -37,11 +37,7 @@ class CaveNavigator:
             yield found_path
         #
 
-    def __recursive_path_finder(
-            self,
-            *visited_caves,
-            visited_twice=False
-        ):
+    def __recursive_path_finder(self, *visited_caves, visited_twice=False):
         """Yield all paths starting with visited_caves
         and ending in "end"
         """
@@ -91,11 +87,6 @@ def part2(reader):
         navigator.add_connection(line)
     #
     paths = list(navigator.find_paths(allow_one_double_visit=True))
-# =============================================================================
-#     for path in sorted(paths):
-#         logging.debug("Found: %s", ",".join(path))
-#     #
-# =============================================================================
     return len(paths)
 
 

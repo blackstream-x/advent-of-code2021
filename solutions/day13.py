@@ -51,7 +51,9 @@ class TransparentOrigami:
             if position[folded_index] > fold_position:
                 mutable_pos = list(position)
                 # logging.debug("%r =>", mutable_pos)
-                mutable_pos[folded_index] = 2 * fold_position - mutable_pos[folded_index]
+                mutable_pos[folded_index] = (
+                    2 * fold_position - mutable_pos[folded_index]
+                )
                 # logging.debug("%r", mutable_pos)
                 folded.add(tuple(mutable_pos))
             else:
@@ -67,8 +69,7 @@ class TransparentOrigami:
         max_x = max(pos[0] for pos in self.grid)
         max_y = max(pos[1] for pos in self.grid)
         output = [
-            ["." for x_pos in range(max_x + 1)]
-            for y_pos in range(max_y + 1)
+            ["." for x_pos in range(max_x + 1)] for y_pos in range(max_y + 1)
         ]
         for (x_pos, y_pos) in self.grid:
             output[y_pos][x_pos] = "#"

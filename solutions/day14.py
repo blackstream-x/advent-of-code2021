@@ -51,22 +51,23 @@ class PolimerizationCounter:
         """
         for index, element in enumerate(self.template):
             if index:
-                elements_pair = self.template[index -1:index + 1]
+                elements_pair = self.template[index - 1:index + 1]
                 self.frequencies[elements_pair] += 1
             #
         #
         for step_no in range(1, number + 1):
             self.step()
-            logging.debug(
-                "After step %s: %s", step_no, self.frequencies
-            )
+            logging.debug("After step %s: %s", step_no, self.frequencies)
         #
 
     def get_element_frequencies(self):
-        """Return a dict with element frequencies"""
-        # Double count frequencies first, then half the numbers.
-        # Add one to the first and last element before halving
-        # as they have been counted only once.
+        """Return a dict with element frequencies.
+        Double count frequencies first, then half the numbers.
+        Add one to the first and last elements before counting
+        as they are counted only once, in contrast to the
+        elements which are in the middle of the chain,
+        which are part of two combinationss each.
+        """
         dcf = collections.defaultdict(int)
         for index in (0, -1):
             dcf[self.template[index]] = 1
@@ -82,7 +83,6 @@ class PolimerizationCounter:
         return element_frequencies
 
 
-
 @helpers.timer
 def part1(reader):
     """Part 1"""
@@ -94,9 +94,7 @@ def part1(reader):
         #
     #
     counter.execute_steps(10)
-    elements_frequencies = sorted(
-        counter.get_element_frequencies().values()
-    )
+    elements_frequencies = sorted(counter.get_element_frequencies().values())
     return elements_frequencies[-1] - elements_frequencies[0]
 
 
@@ -111,9 +109,7 @@ def part2(reader):
         #
     #
     counter.execute_steps(40)
-    elements_frequencies = sorted(
-        counter.get_element_frequencies().values()
-    )
+    elements_frequencies = sorted(counter.get_element_frequencies().values())
     return elements_frequencies[-1] - elements_frequencies[0]
 
 
