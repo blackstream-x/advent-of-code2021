@@ -18,29 +18,42 @@ class PolimerizationCounter:
     """Count polimerizations"""
 
     def __init__(self, template):
-        """Keep a dict of combination frequencies"""
+        """Keep the original template,
+        create a (default-)dict of elements pairs’ frequencies
+        and a rules dict
+        """
         self.template = template
         self.frequencies = collections.defaultdict(int)
         self.rules = {}
 
-    def add_rule(self, rule):
-        """Add a new rule to the rules"""
-        [element_pair, to_insert] = [item.strip() for item in rule.split("->")]
-        self.rules[element_pair] = to_insert
+    def add_rule(self, line):
+        """Add a new rule parsed from the line"""
+        raw_pair, raw_new_element = line.split("->")
+        self.rules[tuple(raw_pair.strip())] = raw_new_element.strip()
 
     def step(self):
-        """Execute one step"""
+        """Execute one step.
+        For each existing elements pair (first element, second element),
+        insert a new element according to the rule for that pair.
+        This will increase the frequency of
+        (first element, new element) and (new element, second element)
+        *each* by the previous frequency of (first element, second element).
+        """
         new_frequencies = collections.defaultdict(int)
-        for combination, frequency in self.frequencies.items():
+        for elements_pair, frequency in self.frequencies.items():
             try:
-                to_insert = self.rules[combination]
+                new_element = self.rules[elements_pair]
             except KeyError:
-                logging.debug("No rule for comnination %r!", combination)
-                new_frequencies[combination] += frequency
+                logging.debug("No rule for elements pair %r!", elements_pair)
+                new_frequencies[elements_pair] += frequency
             else:
-                [before, after] = list(combination)
-                new_frequencies[f"{before}{to_insert}"] += frequency
-                new_frequencies[f"{to_insert}{after}"] += frequency
+                element_before, element_after = elements_pair
+                for new_pair in (
+                    (element_before, new_element),
+                    (new_element, element_after),
+                ):
+                    new_frequencies[new_pair] += frequency
+                #
             #
         #
         self.frequencies = new_frequencies
@@ -51,7 +64,7 @@ class PolimerizationCounter:
         """
         for index, element in enumerate(self.template):
             if index:
-                elements_pair = self.template[index - 1:index + 1]
+                elements_pair = (self.template[index - 1], element)
                 self.frequencies[elements_pair] += 1
             #
         #
@@ -60,7 +73,7 @@ class PolimerizationCounter:
             logging.debug("After step %s: %s", step_no, self.frequencies)
         #
 
-    def get_element_frequencies(self):
+    def get_elements_frequencies(self):
         """Return a dict with element frequencies.
         Double count frequencies first, then half the numbers.
         Add one to the first and last elements before counting
@@ -68,49 +81,45 @@ class PolimerizationCounter:
         elements which are in the middle of the chain,
         which are part of two combinationss each.
         """
-        dcf = collections.defaultdict(int)
+        double_counted_frequencies = collections.defaultdict(int)
         for index in (0, -1):
-            dcf[self.template[index]] = 1
+            double_counted_frequencies[self.template[index]] = 1
         #
         for elements_pair, frequency in self.frequencies.items():
-            dcf[elements_pair[0]] += frequency
-            dcf[elements_pair[1]] += frequency
+            for element in elements_pair:
+                double_counted_frequencies[element] += frequency
+            #
         #
-        element_frequencies = {}
-        for element, double_frequency in dcf.items():
-            element_frequencies[element] = double_frequency // 2
+        return {
+            element: double_frequency // 2
+            for element, double_frequency in double_counted_frequencies.items()
+        }
+
+
+def frequency_difference_after(number_of_steps, reader):
+    """Return the frequency difference after number_of_steps"""
+    for line in reader.lines():
+        try:
+            counter.add_rule(line)
+        except NameError:
+            counter = PolimerizationCounter(line)
         #
-        return element_frequencies
+    #
+    counter.execute_steps(number_of_steps)
+    elements_frequencies = sorted(counter.get_elements_frequencies().values())
+    return elements_frequencies[-1] - elements_frequencies[0]
 
 
 @helpers.timer
 def part1(reader):
     """Part 1"""
-    for line in reader.lines():
-        try:
-            counter.add_rule(line)
-        except NameError:
-            counter = PolimerizationCounter(line)
-        #
-    #
-    counter.execute_steps(10)
-    elements_frequencies = sorted(counter.get_element_frequencies().values())
-    return elements_frequencies[-1] - elements_frequencies[0]
+    return frequency_difference_after(10, reader)
 
 
 @helpers.timer
 def part2(reader):
     """Part 2"""
-    for line in reader.lines():
-        try:
-            counter.add_rule(line)
-        except NameError:
-            counter = PolimerizationCounter(line)
-        #
-    #
-    counter.execute_steps(40)
-    elements_frequencies = sorted(counter.get_element_frequencies().values())
-    return elements_frequencies[-1] - elements_frequencies[0]
+    return frequency_difference_after(40, reader)
 
 
 if __name__ == "__main__":
