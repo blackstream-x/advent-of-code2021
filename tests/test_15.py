@@ -12,8 +12,8 @@ import day15 as current_day
 
 DAY = 15
 
-EXAMPLE_RESULTS = 40, None
-PUZZLE_RESULTS = None, None
+EXAMPLE_RESULTS = 40, 315
+PUZZLE_RESULTS = 652, 2938
 
 TESTED_FUNCTIONS = current_day.part1, current_day.part2
 

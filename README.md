@@ -32,3 +32,9 @@ If the `-k …` filter option is omitted, all defined tests are run.
 - `-e` runs the solver with the example data
 - `day`: if a numerical value is provided, the solver runs for that day instead of **today**.
 
+## My results
+
+- Succeeded in days 1-14
+- Failed to find an own solution for day 15 part 1,
+  adapted the solution from <https://github.com/macobo/aoc-2021/>
+-
