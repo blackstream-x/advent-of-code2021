@@ -58,6 +58,7 @@ class ChitonDensityMap:
             yield (x_pos, y_pos + 1)
         #
 
+
 def get_heap_based_cost(matrix):
     """Return minimum path cost using a binary heap
 

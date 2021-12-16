@@ -8,8 +8,21 @@ blackstream-x’ solution
 
 
 import logging
+import operator
 
 import helpers
+
+
+AGGREGATES = (
+    sum,
+    operator.mul,
+    min,
+    max,
+    None,
+    operator.gt,
+    operator.lt,
+    operator.eq,
+)
 
 
 class Packet:
@@ -92,38 +105,22 @@ class OperatorPacket(Packet):
 
     @property
     def value(self):
-        """Return the value computed from the subpackages"""
-        result = None
-        if self.type_id == 0:
-            # Sum
-            result = self.subpackets[0].value
-            for subpacket in self.subpackets[1:]:
-                result += subpacket.value
-            #
-        elif self.type_id == 1:
+        """Return the value computed from the subpackets"""
+        subpacket_values = [subpacket.value for subpacket in self.subpackets]
+        func = AGGREGATES[self.type_id]
+        if self.type_id == 1:
             # Product
-            result = self.subpackets[0].value
-            for subpacket in self.subpackets[1:]:
-                result *= subpacket.value
+            result = subpacket_values[0]
+            for value in subpacket_values[1:]:
+                result *= value
             #
-        elif self.type_id == 2:
-            # Minimum
-            result = min(subpacket.value for subpacket in self.subpackets)
-        elif self.type_id == 3:
-            # Maximum
-            result = max(subpacket.value for subpacket in self.subpackets)
-            #
-        elif self.type_id == 5:
-            # first greater than second
-            result = int(self.subpackets[0].value > self.subpackets[1].value)
-        elif self.type_id == 6:
-            # first less than second
-            result = int(self.subpackets[0].value < self.subpackets[1].value)
-        elif self.type_id == 7:
-            # first equals second
-            result = int(self.subpackets[0].value == self.subpackets[1].value)
+            return result
         #
-        return result
+        if self.type_id in (5, 6, 7):
+            # Comparisons
+            return int(func(*subpacket_values))
+        #
+        return func(subpacket_values)
 
     def get_versions_sum(self):
         """Return the own version number,
