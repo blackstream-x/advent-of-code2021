@@ -58,33 +58,86 @@ class ChitonDensityMap:
             yield (x_pos, y_pos + 1)
         #
 
-    def get_minimum_path_cost(self):
-        """Return minimum path cost using a binary heap"""
-        end_point = (self.width - 1, self.height - 1)
-        visited = set()
-        work_heap = []
-        heapq.heappush(work_heap, (0, self.start_point))
-        while work_heap:
-            cost, current_position = heapq.heappop(work_heap)
-            if current_position in visited:
+def get_heap_based_cost(matrix):
+    """Return minimum path cost using a binary heap
+
+    ================================================================
+    Measured times with this algorithm:
+
+    Running command: solutions/day15.py inputs/15.txt
+
+    INFO     | Executed 'Part 1' in 80.100 msec (80100.3 µsec)
+    652
+    INFO     | Executed 'Part 2' in 2321.449 msec (2321448.6 µsec)
+    2938
+    ================================================================
+    """
+    end_point = (matrix.width - 1, matrix.height - 1)
+    visited = set()
+    work_heap = []
+    heapq.heappush(work_heap, (0, matrix.start_point))
+    while work_heap:
+        cost, current_position = heapq.heappop(work_heap)
+        if current_position in visited:
+            continue
+        #
+        logging.debug("Visiting position %r ...", current_position)
+        visited.add(current_position)
+        if current_position == end_point:
+            return cost
+        #
+        for neighbor_position in matrix.neighbors(current_position):
+            # Never consider already visited psitions again
+            if neighbor_position in visited:
                 continue
             #
-            logging.debug("Visiting position %r ...", current_position)
-            visited.add(current_position)
-            if current_position == end_point:
-                return cost
-            #
-            for neighbor_position in self.neighbors(current_position):
-                # Never consider already visited psitions again
-                if neighbor_position in visited:
-                    continue
-                #
-                heapq.heappush(
-                    work_heap,
-                    (cost + self.matrix[neighbor_position], neighbor_position),
-                )
-            #
+            heapq.heappush(
+                work_heap,
+                (cost + matrix.matrix[neighbor_position], neighbor_position),
+            )
         #
+    #
+
+
+def get_set_based_cost(matrix):
+    """Return minimum path cost using a set
+
+    ====================================================================
+    Measured times with this algorithm:
+
+    Running command: solutions/day15.py inputs/15.txt
+
+    INFO     | Executed 'Part 1' in 312.598 msec (312597.5 µsec)
+    652
+    INFO     | Executed 'Part 2' in 42630.289 msec (42630288.8 µsec)
+    2938
+    ====================================================================
+    """
+    end_point = (matrix.width - 1, matrix.height - 1)
+    visited = set()
+    work_area = set([(0, matrix.start_point)])
+    while work_area:
+        cheapest = min(work_area)
+        work_area.remove(cheapest)
+        cost, current_position = cheapest
+        if current_position in visited:
+            continue
+        #
+        logging.debug("Visiting position %r ...", current_position)
+        visited.add(current_position)
+        if current_position == end_point:
+            return cost
+        #
+        for neighbor_position in matrix.neighbors(current_position):
+            # Never consider already visited psitions again
+            if neighbor_position in visited:
+                continue
+            #
+            work_area.add(
+                (cost + matrix.matrix[neighbor_position], neighbor_position)
+            )
+        #
+    #
 
 
 def blow_up(reader):
@@ -124,7 +177,8 @@ def part1(reader):
     for line in reader.lines():
         density_map.add_line(line)
     #
-    return density_map.get_minimum_path_cost()
+    return get_heap_based_cost(density_map)
+    # return get_set_based_cost(density_map)
 
 
 @helpers.timer
@@ -134,7 +188,8 @@ def part2(reader):
     for line in blow_up(reader):
         density_map.add_line(line)
     #
-    return density_map.get_minimum_path_cost()
+    return get_heap_based_cost(density_map)
+    # return get_set_based_cost(density_map)
 
 
 if __name__ == "__main__":
