@@ -27,9 +27,11 @@ class Reader:
     and provide generator methods yielding lines or line parts
     """
 
-    def __init__(self, file_name=None):
+    def __init__(self, file_name=None, text=None):
         """Read the file and keep its contents"""
-        if file_name:
+        if text:
+            self.file_contents = text
+        elif file_name:
             with open(file_name, mode="rt", encoding="utf-8") as input_file:
                 self.file_contents = input_file.read()
             #

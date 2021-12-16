@@ -12,7 +12,7 @@ import day13 as current_day
 
 DAY = 13
 
-EXAMPLE_RESULTS = 17, "a"           # small square interpreted as "a" by OCR
+EXAMPLE_RESULTS = 17, "a"  # small square interpreted as "a" by OCR
 PUZZLE_RESULTS = 842, "BFKRCJZU"
 
 TESTED_FUNCTIONS = current_day.part1, current_day.part2
