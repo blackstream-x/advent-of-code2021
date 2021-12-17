@@ -7,6 +7,7 @@ blackstream-x’ solution
 """
 
 
+import functools
 import logging
 import operator
 
@@ -24,20 +25,33 @@ AGGREGATES = (
     operator.eq,
 )
 
+TYPE_SUM = 0
+TYPE_PRODUCT = 1
+TYPES_MINMAX = (2, 3)
+TYPE_DATA = 4
+TYPES_COMPARISON = (5, 6, 7)
+
 
 class Packet:
 
     """Packet base class"""
 
+    allowed_type_ids = ()
+    expect_bits = 0
+
     def __init__(self, version, type_id):
-        """..."""
+        """Check if the given type ID matches the package type"""
+        if type_id not in self.allowed_type_ids:
+            raise ValueError(
+                f"Type ID {type_id} not allowed for {self.__class__.__name__}!"
+            )
+        #
         self.version = version
         self.type_id = type_id
-        self.expect_bits = 0
         logging.debug("Initialized %r", self)
 
     def check_input(self, bits):
-        """Check input"""
+        """Check input if the expected number of bits was supplied"""
         if self.expect_bits is not None and len(bits) != self.expect_bits:
             raise ValueError(f"Expecting exactly {self.expect_bits} bits!")
         #
@@ -62,12 +76,14 @@ class DataPacket(Packet):
 
     """Data packet"""
 
+    allowed_type_ids = (TYPE_DATA,)
+    expect_bits = 5
+
     def __init__(self, version, type_id):
-        """..."""
+        """Store hex and decimal values"""
         super().__init__(version, type_id)
         self.hex_value = ""
         self.literal_value = None
-        self.expect_bits = 5
 
     @property
     def value(self):
@@ -75,7 +91,9 @@ class DataPacket(Packet):
         return self.literal_value
 
     def parse(self, bits):
-        """Parse 5 bits"""
+        """Parse exactly 5 bits and return the number of
+        remaining unparsed bits (always zero)
+        """
         self.check_input(bits)
         self.hex_value += bits2hex(bits[1:])
         if bits[0] == "0":
@@ -94,32 +112,35 @@ class OperatorPacket(Packet):
 
     """Operator packet"""
 
+    allowed_type_ids = (
+        TYPE_SUM,
+        TYPE_PRODUCT,
+        *TYPES_MINMAX,
+        *TYPES_COMPARISON,
+    )
+    expect_bits = 1
+
     def __init__(self, version, type_id):
-        """..."""
+        """Store subpackets and control parameters"""
         super().__init__(version, type_id)
-        self.subpackets = []
         self.length_type_id = None
         self.subpackets_length = None
         self.subpackets_number = None
-        self.expect_bits = 1
+        self.subpackets = []
 
     @property
     def value(self):
         """Return the value computed from the subpackets"""
         subpacket_values = [subpacket.value for subpacket in self.subpackets]
         func = AGGREGATES[self.type_id]
-        if self.type_id == 1:
-            # Product
-            result = subpacket_values[0]
-            for value in subpacket_values[1:]:
-                result *= value
-            #
-            return result
+        if self.type_id == TYPE_PRODUCT:
+            # Chain multiplication
+            return functools.reduce(func, subpacket_values, 1)
         #
-        if self.type_id in (5, 6, 7):
-            # Comparisons
+        if self.type_id in TYPES_COMPARISON:
             return int(func(*subpacket_values))
         #
+        # Remaining types: sum, min and max
         return func(subpacket_values)
 
     def get_versions_sum(self):
@@ -131,7 +152,11 @@ class OperatorPacket(Packet):
         )
 
     def parse(self, bits):
-        """Parse bits"""
+        """Parse bits and return the number of
+        remaining unparsed bits (only relevant
+        if the number of bits to parse is undetermined,
+        ie. when a certain number of subpackets is expected).
+        """
         self.check_input(bits)
         if self.length_type_id is None:
             self.length_type_id = bits2dec(bits[0])
@@ -146,13 +171,15 @@ class OperatorPacket(Packet):
             #
             self.expect_bits = 0
         elif self.subpackets_number:
+            unparsed_bits = 0
             for remaining_bits, packet in parse_substring(
                 bits, max_packets=self.subpackets_number - len(self.subpackets)
             ):
                 self.subpackets.append(packet)
+                unparsed_bits = remaining_bits
             #
             self.expect_bits = 0
-            return remaining_bits
+            return unparsed_bits
         else:
             number = int(bits, 2)
             if len(bits) == 11:
@@ -180,9 +207,9 @@ def bits2hex(bits):
 
 def hex2bits(hexdigit):
     """return hexdigit converted to a string representation
-    of 4 bits binary
+    of 4 bits binary, left-padded with zeros
     """
-    return "{0:>04s}".format(bin(int(hexdigit, 16))[2:])
+    return f"{bin(int(hexdigit, 16))[2:]:>04s}"
 
 
 def parse_substring(bits, max_packets=None):
@@ -196,7 +223,7 @@ def parse_substring(bits, max_packets=None):
         #
         version = bits2dec(bits[index:index + 3])
         type_id = bits2dec(bits[index + 3:index + 6])
-        if type_id == 4:
+        if type_id == TYPE_DATA:
             packet = DataPacket(version, type_id)
         else:
             packet = OperatorPacket(version, type_id)
