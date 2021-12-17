@@ -12,19 +12,18 @@ blackstream-x’ solution
 import helpers
 
 
-READER = helpers.Reader()
-
-
-def get_command():
-    for fields in READER.splitted_lines():
+def get_command(reader):
+    """Get commands from input"""
+    for fields in reader.splitted_lines():
         yield (fields[0], int(fields[1]))
     #
 
 
 @helpers.timer
-def part1():
+def part1(reader):
+    """Part 1"""
     horizontal = depth = 0
-    for (direction, units) in get_command():
+    for (direction, units) in get_command(reader):
         if direction == "forward":
             horizontal += units
         elif direction == "down":
@@ -39,9 +38,10 @@ def part1():
 
 
 @helpers.timer
-def part2():
+def part2(reader):
+    """Part 2"""
     horizontal = depth = aim = 0
-    for (direction, units) in get_command():
+    for (direction, units) in get_command(reader):
         if direction == "forward":
             horizontal += units
             depth += aim * units
@@ -57,8 +57,7 @@ def part2():
 
 
 if __name__ == "__main__":
-    print(part1())
-    print(part2())
+    helpers.solve_puzzle(part1, part2)
 
 
 # vim: fileencoding=utf-8 sw=4 ts=4 sts=4 expandtab autoindent syntax=python:

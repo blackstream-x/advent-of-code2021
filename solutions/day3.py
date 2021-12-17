@@ -7,6 +7,8 @@ blackstream-x’ solution
 """
 
 
+import logging
+
 import helpers
 
 
@@ -71,8 +73,9 @@ def part1(reader):
         for values in most_and_least_common(list(reader.lines()))
     ]
     gamma_dec, epsilon_dec = int(gamma, 2), int(epsilon, 2)
-    print(f"Gamma: {gamma} => {gamma_dec}")
-    print(f"Epsilon: {epsilon} => {epsilon_dec}")
+    # pylint: disable=logging-fstring-interpolation ; because I’m lazy
+    logging.debug(f"Gamma: {gamma} => {gamma_dec}")
+    logging.debug(f"Epsilon: {epsilon} => {epsilon_dec}")
     return gamma_dec * epsilon_dec
 
 
@@ -83,15 +86,14 @@ def part2(reader):
         filter_from_report(reader, position) for position in range(2)
     ]
     oxy_gen_dec, co2_scrub_dec = int(oxy_gen, 2), int(co2_scrub, 2)
-    print(f"Oxygen genrator: {oxy_gen} => {oxy_gen_dec}")
-    print(f"CO2 scrubber: {co2_scrub} => {co2_scrub_dec}")
+    # pylint: disable=logging-fstring-interpolation ; because I’m lazy
+    logging.debug(f"Oxygen generator: {oxy_gen} => {oxy_gen_dec}")
+    logging.debug(f"CO2 scrubber: {co2_scrub} => {co2_scrub_dec}")
     return oxy_gen_dec * co2_scrub_dec
 
 
 if __name__ == "__main__":
-    READER = helpers.initialize_puzzle()
-    print(part1(READER))
-    print(part2(READER))
+    helpers.solve_puzzle(part1, part2)
 
 
 # vim: fileencoding=utf-8 sw=4 ts=4 sts=4 expandtab autoindent syntax=python:

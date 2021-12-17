@@ -123,9 +123,7 @@ def part2(reader):
 
 
 if __name__ == "__main__":
-    READER = helpers.initialize_puzzle()
-    print(part1(READER))
-    print(part2(READER))
+    helpers.solve_puzzle(part1, part2)
 
 
 # vim: fileencoding=utf-8 sw=4 ts=4 sts=4 expandtab autoindent syntax=python:

@@ -40,23 +40,28 @@ class HeightMap:
         self.basins = {}
         self.basins_lookup = {}
 
-    def get_height(self, x, y):
+    def get_height(self, x_pos, y_pos):
         """Get the height at the indicated position"""
-        if y > self.max_y:
+        if y_pos > self.max_y:
             raise OutOfMap
         #
-        max_x = len(self.lines[y]) - 1
-        if x < 0 or y < 0 or x > max_x:
+        max_x = len(self.lines[y_pos]) - 1
+        if x_pos < 0 or y_pos < 0 or x_pos > max_x:
             raise OutOfMap
         #
-        return self.lines[y][x]
+        return self.lines[y_pos][x_pos]
 
-    def smallest_neighbor(self, x, y):
+    def smallest_neighbor(self, x_pos, y_pos):
         """Return the smallest neighbor’s coordinates"""
-        own_height = self.get_height(x, y)
+        own_height = self.get_height(x_pos, y_pos)
         lowest_height = own_height
-        lowest_coords = (x, y)
-        for (n_x, n_y) in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+        lowest_coords = (x_pos, y_pos)
+        for (n_x, n_y) in (
+            (x_pos - 1, y_pos),
+            (x_pos + 1, y_pos),
+            (x_pos, y_pos - 1),
+            (x_pos, y_pos + 1)
+        ):
             try:
                 neighbor_height = self.get_height(n_x, n_y)
             except OutOfMap:
@@ -67,7 +72,7 @@ class HeightMap:
                 lowest_height = neighbor_height
             #
         #
-        if lowest_coords == (x, y):
+        if lowest_coords == (x_pos, y_pos):
             raise LowestPoint
         #
         return lowest_coords
@@ -89,8 +94,8 @@ class HeightMap:
 
     def find_low_points(self):
         """Yield all low point values"""
-        for (x, y) in self.find_low_point_coordinates():
-            yield self.get_height(x, y)
+        for (x_pos, y_pos) in self.find_low_point_coordinates():
+            yield self.get_height(x_pos, y_pos)
         #
 
     def add_to_basin(self, lowest_point, *positions):
@@ -108,8 +113,8 @@ class HeightMap:
 
     def find_basins(self):
         """Find all basins"""
-        for (x, y) in self.find_low_point_coordinates():
-            self.add_to_basin((x, y))
+        for (x_pos, y_pos) in self.find_low_point_coordinates():
+            self.add_to_basin((x_pos, y_pos))
         #
         for y_index, row in enumerate(self.lines):
             for x_index, point in enumerate(row):
@@ -120,15 +125,15 @@ class HeightMap:
                     continue
                 #
                 # Move in the direction of the mallest neighbor
-                x = x_index
-                y = y_index
-                visited_positions = [(x, y)]
+                x_pos = x_index
+                y_pos = y_index
+                visited_positions = [(x_pos, y_pos)]
                 while True:
-                    (x, y) = self.smallest_neighbor(x, y)
+                    (x_pos, y_pos) = self.smallest_neighbor(x_pos, y_pos)
                     try:
-                        basin_id = self.basins_lookup[(x, y)]
+                        basin_id = self.basins_lookup[(x_pos, y_pos)]
                     except KeyError:
-                        visited_positions.append((x, y))
+                        visited_positions.append((x_pos, y_pos))
                         continue
                     #
                     self.add_to_basin(basin_id, *visited_positions)
@@ -167,9 +172,7 @@ def part2(reader):
 
 
 if __name__ == "__main__":
-    READER = helpers.initialize_puzzle()
-    print(part1(READER))
-    print(part2(READER))
+    helpers.solve_puzzle(part1, part2)
 
 
 # vim: fileencoding=utf-8 sw=4 ts=4 sts=4 expandtab autoindent syntax=python:

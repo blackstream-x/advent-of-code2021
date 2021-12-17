@@ -199,7 +199,7 @@ def blow_up(reader):
         for increase in range(9):
             repetitions.append([])
         #
-        for (index, item) in enumerate(line):
+        for item in line:
             density = int(item)
             for increase in range(9):
                 repetitions[increase].append((density - 1 + increase) % 9 + 1)
@@ -212,8 +212,8 @@ def blow_up(reader):
             ]
         )
     #
-    for multiplied_height in range(5):
-        for (line_number, blocks) in enumerate(repeated_lines):
+    for _ in range(5):
+        for blocks in repeated_lines:
             logging.debug(blocks)
             yield "".join(blocks[:5])
             blocks.pop(0)
@@ -244,9 +244,7 @@ def part2(reader):
 
 
 if __name__ == "__main__":
-    READER = helpers.initialize_puzzle()
-    print(part1(READER))
-    print(part2(READER))
+    helpers.solve_puzzle(part1, part2)
 
 
 # vim: fileencoding=utf-8 sw=4 ts=4 sts=4 expandtab autoindent syntax=python:

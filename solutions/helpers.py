@@ -57,6 +57,7 @@ class Reader:
         #
 
 
+# pylint: disable=too-few-public-methods ; just a mixin
 class TestMixin:
 
     """Mixin for unit tests preventing code duplication"""
@@ -71,13 +72,16 @@ class TestMixin:
         )
 
 
+# pylint: enable
+
+
 #
 # Functions
 #
 
 
 def initialize_puzzle():
-    """Initialize a puzze: initialize logging,
+    """Initialize a puzzle: initialize logging,
     and return a Reader object
     """
     main_parser = argparse.ArgumentParser(
@@ -104,6 +108,17 @@ def initialize_puzzle():
         format="%(levelname)-8s | %(message)s",
     )
     return Reader(arguments.input_file_name)
+
+
+def solve_puzzle(*functions):
+    """Solve a puzzle: initialize it
+    and print the return code of each function
+    with the reader object from initialization
+    """
+    reader = initialize_puzzle()
+    for func in functions:
+        print(func(reader))
+    #
 
 
 def timer(func):
