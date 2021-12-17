@@ -141,6 +141,56 @@ def get_set_based_cost(matrix):
     #
 
 
+def get_list_based_cost(matrix):
+    """Return minimum path cost using a plain list
+
+    ====================================================================
+    Measured times with this algorithm:
+
+    Running command: solutions/day15.py inputs/15.txt
+
+    INFO     | Executed 'Part 1' in 291.281 msec (291281.2 µsec)
+    652
+    INFO     | Executed 'Part 2' in 42683.927 msec (42683927.3 µsec)
+    2938
+    ====================================================================
+    """
+    end_point = (matrix.width - 1, matrix.height - 1)
+    visited = set()
+    work_area = [(0, matrix.start_point)]
+    while work_area:
+        cheapest = work_area.pop(0)
+        cost, current_position = cheapest
+        if current_position in visited:
+            continue
+        #
+        logging.debug("Visiting position %r ...", current_position)
+        visited.add(current_position)
+        if current_position == end_point:
+            return cost
+        #
+        for neighbor_position in matrix.neighbors(current_position):
+            # Never consider already visited psitions again
+            if neighbor_position in visited:
+                continue
+            #
+            neighbor_data = (
+                cost + matrix.matrix[neighbor_position], neighbor_position
+            )
+            if not work_area or neighbor_data > work_area[-1]:
+                work_area.append(neighbor_data)
+                continue
+            #
+            for (index, data) in enumerate(work_area):
+                if neighbor_data < data:
+                    work_area.insert(index, neighbor_data)
+                    break
+                #
+            #
+        #
+    #
+
+
 def blow_up(reader):
     """Yield blown-up lines as outlined in part2 description"""
     repeated_lines = []
