@@ -38,5 +38,6 @@ If the `-k …` filter option is omitted, all defined tests are run.
 - Failed to find an own solution for day 15 part 1,
   adapted the solution from <https://github.com/macobo/aoc-2021/>
 - Succeeded in day 16, 17 and 18
-- Skipped day 19
--
+- Left day 19 for later
+- Succeeded in day 20, but …
+
