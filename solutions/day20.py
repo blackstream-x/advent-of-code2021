@@ -30,7 +30,15 @@ class InputImage:
         self.min_x = 0
         self.min_y = 0
         self.enhancement_algorithm = enhancement_algorithm
-        self.dark_values = 0
+        # Define the infinity pixel value. Initially 0,
+        # it might change according to the enhancement algorithm.
+        # If the enhancement algorithm’s LSB is 1 and its MSB is 0,
+        # the infinity pixel value alternates between 1 and 0.
+        self.infinity_value = 0
+        self.infinity_lookup = [
+            self.enhancement_algorithm & 1,
+            self.enhancement_algorithm >> 0b111111111,
+        ]
 
     def add_line(self, line):
         """Add a line to the map"""
@@ -52,7 +60,11 @@ class InputImage:
         for y_index in range(y_pos - 1, y_pos + 2):
             for x_index in range(x_pos - 1, x_pos + 2):
                 index.append(
-                    str(self.matrix.get((x_index, y_index), self.dark_values))
+                    str(
+                        self.matrix.get(
+                            (x_index, y_index), self.infinity_value
+                        )
+                    )
                 )
             #
         #
@@ -79,9 +91,7 @@ class InputImage:
                 #
             #
         #
-        if self.enhancement_algorithm & 1:
-            self.dark_values = self.dark_values ^ 1
-        #
+        self.infinity_value = self.infinity_lookup[self.infinity_value]
         self.matrix = output
 
     def draw(self):
