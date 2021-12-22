@@ -274,17 +274,20 @@ def part1(reader):
         game.add_player_from_line(line)
     #
     game.play(until_score=1000)
+    won_universes = game.get_won_universes()
     final_scores = game.get_player_scores()
-    anonymous_scores = []
-    for (player_index), score in final_scores:
-        anonymous_scores.append(score)
+    loser_score = 0
+    for (player_index, score) in final_scores:
         logging.info(
             "Player %s reached a total score of %s",
             game.players[player_index],
             score,
         )
+        if not won_universes[player_index]:
+            loser_score = score
+        #
     #
-    return min(anonymous_scores) * game.die.counter
+    return loser_score * game.die.counter
 
 
 @helpers.timer
@@ -295,15 +298,15 @@ def part2(reader):
         game.add_player_from_line(line)
     #
     game.play(until_score=21)
-    final_scores = game.get_won_universes()
+    won_universes = game.get_won_universes()
     for player in game.players:
         logging.info(
             "Player %s has won in %s universes",
             player,
-            final_scores[game.player_lookup[player]],
+            won_universes[game.player_lookup[player]],
         )
     #
-    return max(final_scores.values())
+    return max(won_universes.values())
 
 
 if __name__ == "__main__":
