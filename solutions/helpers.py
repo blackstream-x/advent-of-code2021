@@ -110,6 +110,13 @@ def initialize_puzzle():
     return Reader(arguments.input_file_name)
 
 
+def based_mod(value, modulo, offset=1):
+    """Return the value mod modulo, but moved by offset"""
+    if value < offset:
+        raise ValueError(f"Please provide a value of at least {offset}!")
+    return (value - offset) % modulo + offset
+
+
 def solve_puzzle(*functions):
     """Solve a puzzle: initialize it
     and print the return code of each function
