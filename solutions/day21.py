@@ -17,7 +17,7 @@ import helpers
 
 class BaseDie:
 
-    """Abstract die class capable of counting tall dice rolls"""
+    """Abstract die class capable of counting all dice rolls"""
 
     def __init__(self):
         """Initialize counter"""
@@ -142,17 +142,17 @@ class DiracDiceGame:
         self.players.append(name)
 
     def address(self, score, position):
-        """..."""
+        """Return an axis address calculated from score and position"""
         return self.board_size * score + position
 
     def score_and_position(self, axis_address):
         """Return score and position from the axis address"""
         return divmod(axis_address, self.board_size)
 
-    def games_are_won(self, index):
-        """Return True if the games in index are won"""
+    def games_are_won(self, state_index):
+        """Return True if the games in {state_index} are won"""
         for player_index in (0, 1):
-            if index[player_index] >= self.win_threshold:
+            if state_index[player_index] >= self.win_threshold:
                 return True
             #
         #
