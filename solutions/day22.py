@@ -13,10 +13,23 @@ import logging
 import helpers
 
 
-OPERATIONS = dict(on=set.update, off=set.difference_update)
+MINI_TEST_DATA = """on x=10..12,y=10..12,z=10..12
+on x=11..13,y=11..13,z=11..13
+off x=9..11,y=9..11,z=9..11
+on x=10..10,y=10..10,z=10..10"""
 
-PART_1_LIMITS = dict(x=(-50, 50), y=(-50, 50), z=(-50, 50))
+EXPECTED_MINI_TEST_RESULT = 39
 
+INITIALIZATION_AREA = dict(x=(-50, 50), y=(-50, 50), z=(-50, 50))
+
+SEPARATOR_LINE = "-" * 70
+
+
+class LimitsExceeded(Exception):
+
+    """Raised by the factory method when limits were exceeeded"""
+
+    ...
 
 
 class Cuboid:
@@ -30,16 +43,18 @@ class Cuboid:
         self.dimensions = {}
         for axis in self.axes:
             start, end = kwargs[axis]
-            # Swap coordinates if necessary
             if start > end:
-                start, end = end, start
+                raise ValueError(
+                    f"Invalid coordinates {kwargs}; all start coordinates must"
+                    " be less or equal to their respective end coordinate!"
+                )
             #
             self.dimensions[axis] = (start, end)
         #
 
     @classmethod
     def from_string(cls, coordinates, limits=None):
-        """Parse coordinates and return a cuboid instance"""
+        """Factory method: Parse coordinates and return a cuboid instance"""
         limits = limits or {}
         # Evaluate coordinates
         dimensions = {}
@@ -58,7 +73,7 @@ class Cuboid:
                 end_coord = max_limit
             #
             if start_coord > end_coord:
-                raise ValueError("Limits exceeded")
+                raise LimitsExceeded
             #
             dimensions[axis] = (start_coord, end_coord)
         #
@@ -104,37 +119,44 @@ class Cuboid:
         """Return the cuboid intersecting between self and other,
         or None if there is no intersection
         """
-        intersect = {}
+        intersect_data = {}
         for axis, my_coord in self.dimensions.items():
             your_coord = other[axis]
             if any(
                 (
                     my_coord[0] > your_coord[1],
-                    my_coord[1] > your_coord[0],
+                    my_coord[1] < your_coord[0],
                 )
             ):
                 # No intersection
-                logging.debug("No intersection")
                 return None
             #
-            intersect[axis] = (
+            intersect_data[axis] = (
                 max(my_coord[0], your_coord[0]),
                 min(my_coord[1], your_coord[1]),
             )
         #
-        return Cuboid(**intersect)
+        intersect_cuboid = Cuboid(**intersect_data)
+        # logging.debug(
+        #     "[intersect] Intersection of %s and %s => %s",
+        #     self,
+        #     other,
+        #     intersect_cuboid,
+        # )
+        return intersect_cuboid
 
     def split(self, **kwargs):
         """Return a list of non-overlapping cuboids,
         split at the given coordiates,
         oriented to the smaller side:
-        a cuboid(x=(2,5), y=(6,7), z=(0,1))
+        a cuboid with (x=(2,5), y=(6,7), z=(0,1))
         split at x=(3,4) would be splitted into 3 cuboids:
-        one (x=2,2, y=(6,7), z=(0,1))
-        one (x=3,3, y=(6,7), z=(0,1))
-        and one (x=4,5, y=(6,7), z=(0,1))
+        one with (x=2,2, y=(6,7), z=(0,1))
+        one with (x=3,3, y=(6,7), z=(0,1))
+        and one with (x=4,5, y=(6,7), z=(0,1))
         """
-        split_cuboids = [self]
+        # logging.debug("[split] Splitting %s at %s ...", self, kwargs)
+        split_cuboids = set([self])
         for axis in self.axes:
             try:
                 split_at = kwargs[axis]
@@ -142,26 +164,48 @@ class Cuboid:
                 continue
             #
             for coord in split_at:
-                new_cuboids = []
+                new_cuboids = set()
                 for cuboid in split_cuboids:
                     work_dims = dict(cuboid.dimensions)
                     minor_1 = cuboid[axis][0]
                     major_2 = cuboid[axis][1]
-                    if minor_1 - 1 <= coord <= major_2:
+                    if minor_1 + 1 <= coord <= major_2:
+                        # logging.debug(
+                        #     "[split] * Splitting %s at %s=%s into:",
+                        #     cuboid,
+                        #     axis,
+                        #     coord,
+                        # )
                         major_1 = coord
                         minor_2 = major_1 - 1
                         work_dims.update({axis: (minor_1, minor_2)})
-                        new_cuboids.append(Cuboid(**work_dims))
+                        result1 = Cuboid(**work_dims)
                         work_dims.update({axis: (major_1, major_2)})
-                        new_cuboids.append(Cuboid(**work_dims))
+                        result2 = Cuboid(**work_dims)
+                        # logging.debug("[split]    - %s", result1)
+                        # logging.debug("[split]    - %s", result2)
+                        new_cuboids.update((result1, result2))
                     else:
-                        new_cuboids.append(cuboid)
+                        new_cuboids.add(cuboid)
                     #
                 #
                 split_cuboids = new_cuboids
+                # logging.debug(
+                #     "[split] * after %s=%s split: %s cuboids",
+                #     axis,
+                #     coord,
+                #     len(split_cuboids),
+                # )
             #
         #
-        return split_cuboids
+        # logging.debug(
+        #     "[split] Split resulted in %s cuboids", len(split_cuboids)
+        # )
+        return list(split_cuboids)
+
+    def __hash__(self):
+        """hash value"""
+        return hash(str(self))
 
     def __eq__(self, other):
         """Equality test"""
@@ -175,18 +219,20 @@ class Cuboid:
     def __ne__(self, other):
         """Inequality test"""
         for axis in self.axes:
-            if self[axis] == other[axis]:
-                return False
+            if self[axis] != other[axis]:
+                return True
             #
         #
-        return True
+        return False
 
-    def __add__(self, other):
-        """Add self and another cuboid.
-        Returns a list of non-overlapping cuboids that,
-        put together, exactly use the room of both cuboids
-        """
-        return (self - other) + [other]
+    def __str__(self):
+        """String representation"""
+        dims = []
+        for axis in self.axes:
+            start, end = self[axis]
+            dims.append(f"{axis}=({start},{end})")
+        #
+        return f"{self.__class__.__name__}({','.join(dims)})"
 
     def __sub__(self, other):
         """Subtract other from self"""
@@ -194,86 +240,111 @@ class Cuboid:
         if not intersected:
             return [self]
         #
-        logging.debug("Subtracting %s from %s", other, self)
         split_coordinates = {}
         for axis in self.axes:
             start, end = intersected[axis]
             split_coordinates[axis] = (start, end + 1)
         #
         non_overlapping = [
-            cuboid for cuboid in self.split(**split_coordinates)
+            cuboid
+            for cuboid in self.split(**split_coordinates)
             if cuboid != intersected
         ]
+        # logging.debug(
+        #     "[sub] Subtracting %s from %s resulted in %s cuboids:",
+        #     other,
+        #     self,
+        #     len(non_overlapping),
+        # )
+        # for cuboid in non_overlapping:
+        #     logging.debug("[sub] %s", cuboid)
+        # #
         return non_overlapping
 
 
-def cubes_in_cuboid(coordinates, limits=None):
-    """Return an iterator over all cubes in the cuboid"""
-    limits = limits or {}
-    # Evaluate coordinates
-    value_ranges = {}
-    for dimension in coordinates.split(","):
-        axis, values = dimension.split("=", 1)
-        min_limit, max_limit = limits.get(axis, (None, None))
-        minimum, maximum = [int(item) for item in values.split("..")]
-        if min_limit is not None and minimum < min_limit:
-            minimum = min_limit
+def operate_reactor(line_generator, expected_result=None, limits=None):
+    """Operate the reactor.
+    Adding a cuboid turns all cubes in the cuboid on,
+    subtracting it turns all of them off.
+    Before adding a cuboid, it is subtracted from all
+    existing cuboids in the reactor, thus guaranteeing
+    that no cuboids overlap.
+    """
+    reactor = set()
+    processed_lines = 0
+    skipped_lines = 0
+    try:
+        for line in line_generator():
+            instruction, coordinates = line.split(None, 1)
+            try:
+                new_cuboid = Cuboid.from_string(coordinates, limits=limits)
+            except LimitsExceeded:
+                skipped_lines += 1
+                continue
+            except ValueError as error:
+                logging.error(error)
+                continue
+            #
+            new_reactor = set()
+            while reactor:
+                current_cuboid = reactor.pop()
+                new_reactor.update(current_cuboid - new_cuboid)
+            #
+            if instruction == "on":
+                new_reactor.add(new_cuboid)
+                logging.debug("[loop] Switched on %s", new_cuboid)
+            else:
+                logging.debug("[loop] Switched off %s", new_cuboid)
+            #
+            reactor = new_reactor
+            processed_lines += 1
         #
-        if max_limit is not None and maximum > max_limit:
-            maximum = max_limit
-        #
-        value_ranges[axis] = range(minimum, maximum + 1)
+    except KeyboardInterrupt:
+        pass
+    else:
+        processed_lines = f"all {processed_lines}"
     #
-    return itertools.product(*[value_ranges[axis] for axis in "xyz"])
+    total_volume = sum(cuboid.volume() for cuboid in reactor)
+    logging.info(
+        "After processing %s lines, the reactor contains %s"
+        " non-overlapping cuboids with a total volume of %s cubes.",
+        processed_lines,
+        len(reactor),
+        total_volume,
+    )
+    if skipped_lines:
+        logging.info(
+            "Skipped %s lines due to the limits of %s.", skipped_lines, limits
+        )
+    #
+    if expected_result:
+        if total_volume == expected_result:
+            logging.info("This matches the expected result.")
+        else:
+            logging.error("This does NOT match the expected result!")
+        #
+    #
+    return total_volume
 
 
 @helpers.timer
-def part0(reader):
+def part0(*unused_reader):
     """Part 0"""
-    reactor = set()
-    for line in reader.lines():
-        instruction, coordinates = line.split(None, 1)
-        logging.debug("%s => %s cubes", coordinates, len(list(cubes_in_cuboid(coordinates, limits=PART_1_LIMITS))))
-        OPERATIONS[instruction](reactor, cubes_in_cuboid(coordinates, limits=PART_1_LIMITS))
-    #
-    return len(reactor)
+    return operate_reactor(
+        MINI_TEST_DATA.splitlines, expected_result=EXPECTED_MINI_TEST_RESULT
+    )
 
 
 @helpers.timer
 def part1(reader):
     """Part 1"""
-    reactor = []
-    for line in reader.lines():
-        instruction, coordinates = line.split(None, 1)
-        try:
-            new_cuboid = Cuboid.from_string(coordinates, limits=PART_1_LIMITS)
-        except ValueError as error:
-            logging.warning(error)
-            continue
-        #
-        logging.debug("%s => %s cubes", new_cuboid.dimensions, new_cuboid.volume())
-        new_reactor = []
-        while reactor:
-            current_cuboid = reactor.pop()
-            new_reactor.extend(current_cuboid - new_cuboid)
-        #
-        if instruction == "on":
-            new_reactor.append(new_cuboid)
-        #
-        reactor = new_reactor
-    #
-    return sum(cuboid.volume() for cuboid in reactor)
+    return operate_reactor(reader.lines, limits=INITIALIZATION_AREA)
 
 
 @helpers.timer
 def part2(reader):
     """Part 2"""
-    # TODO: cuboid addition and subtraction algorithm
-    result = None
-    for line in reader.lines():
-        ...
-    #
-    return result
+    return operate_reactor(reader.lines)
 
 
 if __name__ == "__main__":
