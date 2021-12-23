@@ -7,7 +7,6 @@ blackstream-x’ solution
 """
 
 
-import itertools
 import logging
 
 import helpers
@@ -34,7 +33,7 @@ class LimitsExceeded(Exception):
 
 class Cuboid:
 
-    """Represents a cuboit of cubes"""
+    """Represents a cuboid"""
 
     axes = "xyz"
 
@@ -103,13 +102,20 @@ class Cuboid:
         return self[name]
 
     def all_cubes(self):
-        """Return an iterator over all cubes in the cuboid"""
-        dimension_ranges = []
+        """Return an iterator over all cubes
+        (ie. (x, y, z) positions tuples) in the cuboid"""
+        dimension_ranges = {}
         for axis in self.axes:
             minimum, maximum = self.dimensions[axis]
-            dimension_ranges.append(range(minimum, maximum + 1))
+            dimension_ranges[axis] = range(minimum, maximum + 1)
         #
-        return itertools.product(*dimension_ranges)
+        for x_pos in dimension_ranges["x"]:
+            for y_pos in dimension_ranges["y"]:
+                for z_pos in dimension_ranges["z"]:
+                    yield (x_pos, y_pos, z_pos)
+                #
+            #
+        #
 
     def volume(self):
         """Return the volume of the cuboid"""
@@ -137,12 +143,12 @@ class Cuboid:
             )
         #
         intersect_cuboid = Cuboid(**intersect_data)
-        # logging.debug(
-        #     "[intersect] Intersection of %s and %s => %s",
-        #     self,
-        #     other,
-        #     intersect_cuboid,
-        # )
+        logging.debug(
+            "[intersect] Intersection of %s and %s => %s",
+            self,
+            other,
+            intersect_cuboid,
+        )
         return intersect_cuboid
 
     def split(self, **kwargs):
@@ -155,7 +161,7 @@ class Cuboid:
         one with (x=3,3, y=(6,7), z=(0,1))
         and one with (x=4,5, y=(6,7), z=(0,1))
         """
-        # logging.debug("[split] Splitting %s at %s ...", self, kwargs)
+        logging.debug("[split] Splitting %s at %s ...", self, kwargs)
         split_cuboids = set([self])
         for axis in self.axes:
             try:
@@ -170,37 +176,37 @@ class Cuboid:
                     minor_1 = cuboid[axis][0]
                     major_2 = cuboid[axis][1]
                     if minor_1 + 1 <= coord <= major_2:
-                        # logging.debug(
-                        #     "[split] * Splitting %s at %s=%s into:",
-                        #     cuboid,
-                        #     axis,
-                        #     coord,
-                        # )
+                        logging.debug(
+                            "[split] * Splitting %s at %s=%s into:",
+                            cuboid,
+                            axis,
+                            coord,
+                        )
                         major_1 = coord
                         minor_2 = major_1 - 1
                         work_dims.update({axis: (minor_1, minor_2)})
                         result1 = Cuboid(**work_dims)
                         work_dims.update({axis: (major_1, major_2)})
                         result2 = Cuboid(**work_dims)
-                        # logging.debug("[split]    - %s", result1)
-                        # logging.debug("[split]    - %s", result2)
+                        logging.debug("[split]    - %s", result1)
+                        logging.debug("[split]    - %s", result2)
                         new_cuboids.update((result1, result2))
                     else:
                         new_cuboids.add(cuboid)
                     #
                 #
                 split_cuboids = new_cuboids
-                # logging.debug(
-                #     "[split] * after %s=%s split: %s cuboids",
-                #     axis,
-                #     coord,
-                #     len(split_cuboids),
-                # )
+                logging.debug(
+                    "[split] * after %s=%s split: %s cuboids",
+                    axis,
+                    coord,
+                    len(split_cuboids),
+                )
             #
         #
-        # logging.debug(
-        #     "[split] Split resulted in %s cuboids", len(split_cuboids)
-        # )
+        logging.debug(
+            "[split] Split resulted in %s cuboids", len(split_cuboids)
+        )
         return list(split_cuboids)
 
     def __hash__(self):
@@ -250,15 +256,15 @@ class Cuboid:
             for cuboid in self.split(**split_coordinates)
             if cuboid != intersected
         ]
-        # logging.debug(
-        #     "[sub] Subtracting %s from %s resulted in %s cuboids:",
-        #     other,
-        #     self,
-        #     len(non_overlapping),
-        # )
-        # for cuboid in non_overlapping:
-        #     logging.debug("[sub] %s", cuboid)
-        # #
+        logging.debug(
+            "[sub] Subtracting %s from %s resulted in %s cuboids:",
+            other,
+            self,
+            len(non_overlapping),
+        )
+        for cuboid in non_overlapping:
+            logging.debug("[sub] %s", cuboid)
+        #
         return non_overlapping
 
 
@@ -292,9 +298,9 @@ def operate_reactor(line_generator, expected_result=None, limits=None):
             #
             if instruction == "on":
                 new_reactor.add(new_cuboid)
-                logging.debug("[loop] Switched on %s", new_cuboid)
+                logging.info("Switched on %s", new_cuboid)
             else:
-                logging.debug("[loop] Switched off %s", new_cuboid)
+                logging.info("Switched off %s", new_cuboid)
             #
             reactor = new_reactor
             processed_lines += 1
