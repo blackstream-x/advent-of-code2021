@@ -40,4 +40,4 @@ If the `-k …` filter option is omitted, all defined tests are run.
 - Succeeded in day 16, 17 and 18
 - Left day 19 for later
 - Succeeded in day 20 , 21 and 22
-
+- Taking some days off now, leaving days 23–25 for the new year
